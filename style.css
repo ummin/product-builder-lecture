@@ -1,16 +1,31 @@
+:root {
+    --bg-color: #f0f2f5;
+    --container-bg: rgba(255, 255, 255, 0.9);
+    --text-color: #333;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --accent-gradient: linear-gradient(45deg, #3498db, #8e44ad);
+}
+
+[data-theme="dark"] {
+    --bg-color: #1a1a1a;
+    --container-bg: rgba(0, 0, 0, 0.5);
+    --text-color: #fff;
+    --shadow-color: rgba(0, 0, 0, 0.5);
+}
 
 body {
     font-family: 'Montserrat', sans-serif;
-    background-color: #1a1a1a;
-    color: #fff;
+    background-color: var(--bg-color);
+    color: var(--text-color);
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-image: linear-gradient(45deg, #3498db, #8e44ad);
+    background-image: var(--accent-gradient);
     overflow: hidden;
     position: relative;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body::before {
@@ -37,10 +52,36 @@ body::before {
 .container {
     text-align: center;
     padding: 40px;
-    background-color: rgba(0, 0, 0, 0.5);
+    background-color: var(--container-bg);
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 10px 30px var(--shadow-color);
     backdrop-filter: blur(10px);
+    position: relative;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.theme-toggle {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+#theme-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: 50%;
+    transition: background-color 0.3s ease;
+}
+
+#theme-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="dark"] #theme-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 h1 {
