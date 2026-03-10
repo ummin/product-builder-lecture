@@ -75,19 +75,93 @@ themeButton.addEventListener('click', () => {
     }
 });
 
-document.getElementById('generate-button').addEventListener('click', () => {
-    const container = document.getElementById('lotto-balls-container');
-    container.innerHTML = '';
+function generateLottoNumbers() {
     const numbers = new Set();
     while (numbers.size < 6) {
         numbers.add(Math.floor(Math.random() * 45) + 1);
     }
-    
+    return Array.from(numbers).sort((a, b) => a - b);
+}
+
+function displayLottoSet(container, numbers, delay = 0) {
     numbers.forEach((number, index) => {
         setTimeout(() => {
             const lottoBall = document.createElement('lotto-ball');
             lottoBall.setAttribute('number', number);
             container.appendChild(lottoBall);
-        }, index * 200);
+        }, delay + index * 200);
     });
+}
+
+document.getElementById('generate-button').addEventListener('click', () => {
+    const container = document.getElementById('lotto-balls-container');
+    const recommendContainer = document.getElementById('recommend-container');
+    container.innerHTML = '';
+    recommendContainer.innerHTML = '';
+    
+    const numbers = generateLottoNumbers();
+    displayLottoSet(container, numbers);
 });
+
+document.getElementById('recommend-button').addEventListener('click', () => {
+    const container = document.getElementById('lotto-balls-container');
+    const recommendContainer = document.getElementById('recommend-container');
+    container.innerHTML = '';
+    recommendContainer.innerHTML = '';
+    
+    for (let i = 0; i < 5; i++) {
+        const setDiv = document.createElement('div');
+        setDiv.className = 'recommend-set';
+        recommendContainer.appendChild(setDiv);
+        
+        const numbers = generateLottoNumbers();
+        displayLottoSet(setDiv, numbers, i * 300);
+    }
+});
+
+// Partnership form handling
+const partnershipForm = document.getElementById('partnership-form');
+const formStatus = document.getElementById('form-status');
+
+if (partnershipForm) {
+    partnershipForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = new FormData(e.target);
+        const submitButton = document.getElementById('submit-button');
+        
+        submitButton.disabled = true;
+        submitButton.textContent = '보내는 중...';
+        formStatus.textContent = '';
+
+        try {
+            const response = await fetch(e.target.action, {
+                method: partnershipForm.method,
+                body: data,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                formStatus.style.color = '#2ecc71';
+                formStatus.textContent = '문의가 성공적으로 전송되었습니다. 감사합니다!';
+                partnershipForm.reset();
+            } else {
+                const result = await response.json();
+                if (Object.hasOwn(result, 'errors')) {
+                    formStatus.style.color = '#e74c3c';
+                    formStatus.textContent = result.errors.map(error => error.message).join(", ");
+                } else {
+                    formStatus.style.color = '#e74c3c';
+                    formStatus.textContent = '오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+                }
+            }
+        } catch (error) {
+            formStatus.style.color = '#e74c3c';
+            formStatus.textContent = '네트워크 오류가 발생했습니다. 연결 상태를 확인해주세요.';
+        } finally {
+            submitButton.disabled = false;
+            submitButton.textContent = '문의 보내기';
+        }
+    });
+}
