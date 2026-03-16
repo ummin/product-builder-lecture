@@ -1,3 +1,18 @@
+// Smooth scrolling for navigation links
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href').slice(1);
+        const targetElement = document.getElementById(targetId);
+        if (targetElement) {
+            window.scrollTo({
+                top: targetElement.offsetTop - 80, // Adjust for fixed header
+                behavior: 'smooth'
+            });
+        }
+    });
+});
+
 class LottoBall extends HTMLElement {
     constructor() {
         super();
@@ -11,29 +26,24 @@ class LottoBall extends HTMLElement {
         this.shadowRoot.innerHTML = `
             <style>
                 .ball {
-                    width: 60px;
-                    height: 60px;
+                    width: 50px;
+                    height: 50px;
                     border-radius: 50%;
                     display: flex;
                     justify-content: center;
                     align-items: center;
-                    font-size: 1.5rem;
+                    font-size: 1.2rem;
                     font-weight: bold;
                     color: #fff;
-                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-                    animation: appear 0.5s ease-in-out;
-                    background-image: radial-gradient(circle, ${color} 60%, ${this.shadeColor(color, -20)} 100%);
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+                    animation: appear 0.4s ease-out;
+                    background-image: radial-gradient(circle at 30% 30%, ${color} 40%, ${this.shadeColor(color, -30)} 100%);
+                    border: 2px solid rgba(255,255,255,0.2);
                 }
 
                 @keyframes appear {
-                    from {
-                        transform: scale(0);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: scale(1);
-                        opacity: 1;
-                    }
+                    from { transform: scale(0) rotate(-180deg); opacity: 0; }
+                    to { transform: scale(1) rotate(0deg); opacity: 1; }
                 }
             </style>
             <div class="ball">${number}</div>
@@ -41,8 +51,11 @@ class LottoBall extends HTMLElement {
     }
 
     getColor(number) {
-        const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
-        return colors[number % colors.length];
+        if (number <= 10) return '#fbc02d'; // Yellow
+        if (number <= 20) return '#1976d2'; // Blue
+        if (number <= 30) return '#d32f2f'; // Red
+        if (number <= 40) return '#7b1fa2'; // Purple
+        return '#388e3c'; // Green
     }
 
     shadeColor(color, percent) {
@@ -59,21 +72,23 @@ const currentTheme = localStorage.getItem('theme') || 'light';
 
 if (currentTheme === 'dark') {
     document.body.setAttribute('data-theme', 'dark');
-    themeButton.textContent = '☀️';
+    if(themeButton) themeButton.textContent = '☀️';
 }
 
-themeButton.addEventListener('click', () => {
-    let theme = document.body.getAttribute('data-theme');
-    if (theme === 'dark') {
-        document.body.removeAttribute('data-theme');
-        themeButton.textContent = '🌙';
-        localStorage.setItem('theme', 'light');
-    } else {
-        document.body.setAttribute('data-theme', 'dark');
-        themeButton.textContent = '☀️';
-        localStorage.setItem('theme', 'dark');
-    }
-});
+if(themeButton) {
+    themeButton.addEventListener('click', () => {
+        let theme = document.body.getAttribute('data-theme');
+        if (theme === 'dark') {
+            document.body.removeAttribute('data-theme');
+            themeButton.textContent = '🌙';
+            localStorage.setItem('theme', 'light');
+        } else {
+            document.body.setAttribute('data-theme', 'dark');
+            themeButton.textContent = '☀️';
+            localStorage.setItem('theme', 'dark');
+        }
+    });
+}
 
 function generateLottoNumbers() {
     const numbers = new Set();
@@ -89,35 +104,42 @@ function displayLottoSet(container, numbers, delay = 0) {
             const lottoBall = document.createElement('lotto-ball');
             lottoBall.setAttribute('number', number);
             container.appendChild(lottoBall);
-        }, delay + index * 200);
+        }, delay + index * 100);
     });
 }
 
-document.getElementById('generate-button').addEventListener('click', () => {
-    const container = document.getElementById('lotto-balls-container');
-    const recommendContainer = document.getElementById('recommend-container');
-    container.innerHTML = '';
-    recommendContainer.innerHTML = '';
-    
-    const numbers = generateLottoNumbers();
-    displayLottoSet(container, numbers);
-});
+const genBtn = document.getElementById('generate-button');
+const recBtn = document.getElementById('recommend-button');
 
-document.getElementById('recommend-button').addEventListener('click', () => {
-    const container = document.getElementById('lotto-balls-container');
-    const recommendContainer = document.getElementById('recommend-container');
-    container.innerHTML = '';
-    recommendContainer.innerHTML = '';
-    
-    for (let i = 0; i < 5; i++) {
-        const setDiv = document.createElement('div');
-        setDiv.className = 'recommend-set';
-        recommendContainer.appendChild(setDiv);
+if(genBtn) {
+    genBtn.addEventListener('click', () => {
+        const container = document.getElementById('lotto-balls-container');
+        const recommendContainer = document.getElementById('recommend-container');
+        container.innerHTML = '';
+        recommendContainer.innerHTML = '';
         
         const numbers = generateLottoNumbers();
-        displayLottoSet(setDiv, numbers, i * 300);
-    }
-});
+        displayLottoSet(container, numbers);
+    });
+}
+
+if(recBtn) {
+    recBtn.addEventListener('click', () => {
+        const container = document.getElementById('lotto-balls-container');
+        const recommendContainer = document.getElementById('recommend-container');
+        container.innerHTML = '';
+        recommendContainer.innerHTML = '';
+        
+        for (let i = 0; i < 5; i++) {
+            const setDiv = document.createElement('div');
+            setDiv.className = 'recommend-set';
+            recommendContainer.appendChild(setDiv);
+            
+            const numbers = generateLottoNumbers();
+            displayLottoSet(setDiv, numbers, i * 200);
+        }
+    });
+}
 
 // Partnership form handling
 const partnershipForm = document.getElementById('partnership-form');
